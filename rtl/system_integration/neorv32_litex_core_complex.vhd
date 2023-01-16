@@ -204,15 +204,15 @@ begin
     clk_i       => clk_i,       -- global clock, rising edge
     rstn_i      => rstn_i,      -- global reset, low-active, async
     -- DMI debugger interface --
-    dmi_req_valid_i   => dmi.req_valid,
-    dmi_req_ready_o   => dmi.req_ready,
-    dmi_req_address_i => dmi.req_address,
-    dmi_req_data_i    => dmi.req_data,
-    dmi_req_op_i      => dmi.req_op,
-    dmi_rsp_valid_o   => dmi.rsp_valid,
-    dmi_rsp_ready_i   => dmi.rsp_ready,
-    dmi_rsp_data_o    => dmi.rsp_data,
-    dmi_rsp_op_o      => dmi.rsp_op,
+    dmi_req_valid_i   => dmi_req_valid_i,
+    dmi_req_ready_o   => dmi_req_ready_o,
+    dmi_req_address_i => dmi_req_address_i,
+    dmi_req_data_i    => dmi_req_data_i,
+    dmi_req_op_i      => dmi_req_op_i,
+    dmi_rsp_valid_o   => dmi_rsp_valid_o,
+    dmi_rsp_ready_i   => dmi_rsp_ready_i,
+    dmi_rsp_data_o    => dmi_rsp_data_o,
+    dmi_rsp_op_o      => dmi_rsp_op_o,
 
     -- Wishbone bus interface --
     wb_tag_o    => open,        -- request tag
