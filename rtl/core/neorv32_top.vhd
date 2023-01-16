@@ -148,15 +148,15 @@ entity neorv32_top is
 
     -- debug module interface (DMI) --
     dmi_rstn_i       : in  std_ulogic;
-    dmi_req_valid_i  : in  std_ulogic;
-    dmi_req_ready_o  : out std_ulogic; -- DMI is allowed to make new requests when set
-    dmi_req_addr_i   : in  std_ulogic_vector(06 downto 0);
-    dmi_req_op_i     : in  std_ulogic; -- 0=read, 1=write
-    dmi_req_data_i   : in  std_ulogic_vector(31 downto 0);
-    dmi_resp_valid_o : out std_ulogic; -- response valid when set
-    dmi_resp_ready_i : in  std_ulogic; -- ready to receive respond
-    dmi_resp_data_o  : out std_ulogic_vector(31 downto 0);
-    dmi_resp_err_o   : out std_ulogic; -- 0=ok, 1=error
+    dmi_req_valid_i   : in  std_ulogic;
+    dmi_req_ready_o   : out std_ulogic; -- DMI is allowed to make new requests when set
+    dmi_req_address_i : in  std_ulogic_vector(05 downto 0);
+    dmi_req_op_i      : in  std_ulogic_vector(01 downto 0);
+    dmi_req_data_i    : in  std_ulogic_vector(31 downto 0);
+    dmi_rsp_valid_o   : out std_ulogic; -- response valid when set
+    dmi_rsp_ready_i   : in  std_ulogic; -- ready to receive respond
+    dmi_rsp_data_o    : out std_ulogic_vector(31 downto 0);
+    dmi_rsp_op_o      : out std_ulogic_vector(01 downto 0);
 
 
     -- Wishbone bus interface (available if MEM_EXT_EN = true) --
