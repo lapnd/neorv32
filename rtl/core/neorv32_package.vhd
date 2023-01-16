@@ -55,11 +55,6 @@ package neorv32_package is
   -- = cycles after which an *unacknowledged* internal bus access will timeout and trigger a bus fault exception (min 2)
   constant max_proc_int_response_time_c : natural := 15;
 
-  -- jtag tap - identifier --
-  constant jtag_tap_idcode_version_c : std_ulogic_vector(03 downto 0) := x"0"; -- version
-  constant jtag_tap_idcode_partid_c  : std_ulogic_vector(15 downto 0) := x"cafe"; -- part number
-  constant jtag_tap_idcode_manid_c   : std_ulogic_vector(10 downto 0) := "00000000000"; -- manufacturer id
-
   -- Architecture Constants (do not modify!) ------------------------------------------------
   -- -------------------------------------------------------------------------------------------
   constant hw_version_c : std_ulogic_vector(31 downto 0) := x"01070908"; -- NEORV32 version - no touchy!
@@ -1077,12 +1072,18 @@ package neorv32_package is
       -- Global control --
       clk_i          : in  std_ulogic; -- global clock, rising edge
       rstn_i         : in  std_ulogic; -- global reset, low-active, async
-      -- JTAG on-chip debugger interface --
-      jtag_trst_i    : in  std_ulogic := 'U'; -- low-active TAP reset (optional)
-      jtag_tck_i     : in  std_ulogic := 'U'; -- serial clock
-      jtag_tdi_i     : in  std_ulogic := 'U'; -- serial data input
-      jtag_tdo_o     : out std_ulogic;        -- serial data output
-      jtag_tms_i     : in  std_ulogic := 'U'; -- mode select
+    -- debug module interface (DMI) --
+    dmi_rstn_i       : in  std_ulogic;
+    dmi_req_valid_i  : in  std_ulogic;
+    dmi_req_ready_o  : out std_ulogic; -- DMI is allowed to make new requests when set
+    dmi_req_addr_i   : in  std_ulogic_vector(06 downto 0);
+    dmi_req_op_i     : in  std_ulogic; -- 0=read, 1=write
+    dmi_req_data_i   : in  std_ulogic_vector(31 downto 0);
+    dmi_resp_valid_o : out std_ulogic; -- response valid when set
+    dmi_resp_ready_i : in  std_ulogic; -- ready to receive respond
+    dmi_resp_data_o  : out std_ulogic_vector(31 downto 0);
+    dmi_resp_err_o   : out std_ulogic; -- 0=ok, 1=error
+
       -- Wishbone bus interface (available if MEM_EXT_EN = true) --
       wb_tag_o       : out std_ulogic_vector(02 downto 0); -- request tag
       wb_adr_o       : out std_ulogic_vector(31 downto 0); -- address
@@ -2267,37 +2268,6 @@ package neorv32_package is
       -- CPU control --
       cpu_ndmrstn_o     : out std_ulogic; -- soc reset
       cpu_halt_req_o    : out std_ulogic  -- request hart to halt (enter debug mode)
-    );
-  end component;
-
-  -- Component: On-Chip Debugger - Debug Transport Module (DTM) -----------------------------
-  -- -------------------------------------------------------------------------------------------
-  component neorv32_debug_dtm
-    generic (
-      IDCODE_VERSION : std_ulogic_vector(03 downto 0); -- version
-      IDCODE_PARTID  : std_ulogic_vector(15 downto 0); -- part number
-      IDCODE_MANID   : std_ulogic_vector(10 downto 0)  -- manufacturer id
-    );
-    port (
-      -- global control --
-      clk_i             : in  std_ulogic; -- global clock line
-      rstn_i            : in  std_ulogic; -- global reset line, low-active
-      -- jtag connection --
-      jtag_trst_i       : in  std_ulogic;
-      jtag_tck_i        : in  std_ulogic;
-      jtag_tdi_i        : in  std_ulogic;
-      jtag_tdo_o        : out std_ulogic;
-      jtag_tms_i        : in  std_ulogic;
-      -- debug module interface (DMI) --
-      dmi_req_valid_o   : out std_ulogic;
-      dmi_req_ready_i   : in  std_ulogic; -- DMI is allowed to make new requests when set
-      dmi_req_address_o : out std_ulogic_vector(05 downto 0);
-      dmi_req_data_o    : out std_ulogic_vector(31 downto 0);
-      dmi_req_op_o      : out std_ulogic_vector(01 downto 0);
-      dmi_rsp_valid_i   : in  std_ulogic; -- response valid when set
-      dmi_rsp_ready_o   : out std_ulogic; -- ready to receive response
-      dmi_rsp_data_i    : in  std_ulogic_vector(31 downto 0);
-      dmi_rsp_op_i      : in  std_ulogic_vector(01 downto 0)
     );
   end component;
 

@@ -146,12 +146,18 @@ entity neorv32_top is
     clk_i          : in  std_ulogic; -- global clock, rising edge
     rstn_i         : in  std_ulogic; -- global reset, low-active, async
 
-    -- JTAG on-chip debugger interface (available if ON_CHIP_DEBUGGER_EN = true) --
-    jtag_trst_i    : in  std_ulogic := 'U'; -- low-active TAP reset (optional)
-    jtag_tck_i     : in  std_ulogic := 'U'; -- serial clock
-    jtag_tdi_i     : in  std_ulogic := 'U'; -- serial data input
-    jtag_tdo_o     : out std_ulogic;        -- serial data output
-    jtag_tms_i     : in  std_ulogic := 'U'; -- mode select
+    -- debug module interface (DMI) --
+    dmi_rstn_i       : in  std_ulogic;
+    dmi_req_valid_i  : in  std_ulogic;
+    dmi_req_ready_o  : out std_ulogic; -- DMI is allowed to make new requests when set
+    dmi_req_addr_i   : in  std_ulogic_vector(06 downto 0);
+    dmi_req_op_i     : in  std_ulogic; -- 0=read, 1=write
+    dmi_req_data_i   : in  std_ulogic_vector(31 downto 0);
+    dmi_resp_valid_o : out std_ulogic; -- response valid when set
+    dmi_resp_ready_i : in  std_ulogic; -- ready to receive respond
+    dmi_resp_data_o  : out std_ulogic_vector(31 downto 0);
+    dmi_resp_err_o   : out std_ulogic; -- 0=ok, 1=error
+
 
     -- Wishbone bus interface (available if MEM_EXT_EN = true) --
     wb_tag_o       : out std_ulogic_vector(02 downto 0); -- request tag
@@ -1711,46 +1717,6 @@ begin
     );
     resp_bus(RESP_OCD).err <= '0'; -- no access error possible
 
-
-    -- On-Chip Debugger - Debug Transport Module (DTM) ----------------------------------------
-    -- -------------------------------------------------------------------------------------------
-    neorv32_debug_dtm_inst: neorv32_debug_dtm
-    generic map (
-      IDCODE_VERSION => jtag_tap_idcode_version_c, -- version
-      IDCODE_PARTID  => jtag_tap_idcode_partid_c,  -- part number
-      IDCODE_MANID   => jtag_tap_idcode_manid_c    -- manufacturer id
-    )
-    port map (
-      -- global control --
-      clk_i             => clk_i,    -- global clock line
-      rstn_i            => rstn_ext, -- external reset, low-active
-      -- jtag connection --
-      jtag_trst_i       => jtag_trst_i,
-      jtag_tck_i        => jtag_tck_i,
-      jtag_tdi_i        => jtag_tdi_i,
-      jtag_tdo_o        => jtag_tdo_o,
-      jtag_tms_i        => jtag_tms_i,
-      -- debug module interface (DMI) --
-      dmi_req_valid_o   => dmi.req_valid,
-      dmi_req_ready_i   => dmi.req_ready,
-      dmi_req_address_o => dmi.req_address,
-      dmi_req_data_o    => dmi.req_data,
-      dmi_req_op_o      => dmi.req_op,
-      dmi_rsp_valid_i   => dmi.rsp_valid,
-      dmi_rsp_ready_o   => dmi.rsp_ready,
-      dmi_rsp_data_i    => dmi.rsp_data,
-      dmi_rsp_op_i      => dmi.rsp_op
-    );
-
   end generate;
-
-  neorv32_debug_ocd_inst_false:
-  if (ON_CHIP_DEBUGGER_EN = false) generate
-    jtag_tdo_o         <= jtag_tdi_i; -- JTAG feed-through
-    resp_bus(RESP_OCD) <= resp_bus_entry_terminate_c;
-    dci_ndmrstn        <= '1';
-    dci_halt_req       <= '0';
-  end generate;
-
 
 end neorv32_top_rtl;
